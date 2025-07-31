@@ -3,9 +3,9 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+# Set working directory inside the container
 WORKDIR /app
 
-# System dependencies for Selenium + Chrome
 RUN apt-get update && apt-get install -y \
     chromium-driver \
     chromium \
@@ -17,10 +17,10 @@ RUN apt-get update && apt-get install -y \
 ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
-COPY requirements.txt .
+# Copy from subfolder into container
+COPY Railway-Test /app
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
-
-EXPOSE 8080
+# Start app.py from /app
 CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
