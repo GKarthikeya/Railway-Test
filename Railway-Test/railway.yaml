@@ -2,9 +2,10 @@ services:
   - type: web
     name: attendance-app
     env: docker
-    plan: free
+    dockerfilePath: Railway-Test/Dockerfile
     autoDeploy: true
-    dockerfilePath: ./Dockerfile
     envVars:
-      - key: GOOGLE_CHROME_BIN
-        value: /usr/bin/google-chrome
+      - key: CHROME_BIN
+        value: /usr/bin/chromium
+      - key: CHROMEDRIVER_PATH
+        value: /usr/bin/chromedriver
