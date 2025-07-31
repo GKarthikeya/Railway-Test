@@ -38,5 +38,6 @@ COPY grok /app/grok
 # Expose the port Railway expects
 EXPOSE 8080
 
-# Start the app using gunicorn and correct Python import path
+# Final line in Dockerfile
 CMD ["gunicorn", "grok.app:app", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "120"]
+
