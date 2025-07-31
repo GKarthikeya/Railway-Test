@@ -25,6 +25,7 @@ RUN wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/$
 ENV GOOGLE_CHROME_BIN=/usr/bin/google-chrome
 ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
 ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
 
 # Set working directory
 WORKDIR /app
@@ -36,8 +37,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application
 COPY grok /app/grok
 
-# Expose the port Railway assigns dynamically
+# Expose the dynamic port
 EXPOSE $PORT
 
-# Start the app using gunicorn with correct module path
-CMD ["gunicorn", "grok.app:app", "--bind", "0.0.0.0:$PORT", "--workers", "1", "--timeout", "120"]
+# Start the app using gunicorn with resolved PORT
+CMD ["/bin/sh", "-c", "gunicorn grok.app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120"]
