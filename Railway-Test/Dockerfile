@@ -16,12 +16,10 @@ RUN apt-get update && apt-get install -y \
 ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
-# ✅ Copy only contents of Railway-Test to /app
-COPY Railway-Test/ /app
+COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8080
 
-# ✅ Run app.py from /app
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "grok.app:app"]
