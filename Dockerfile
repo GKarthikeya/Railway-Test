@@ -32,11 +32,11 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your actual app (inside `grok/`)
+# Copy the application
 COPY grok /app/grok
 
-# Expose the port Railway expects
+# Expose the port Render expects
 EXPOSE 8080
 
-# Start the app using gunicorn and correct Python import path
+# Start the app using gunicorn with correct module path
 CMD ["gunicorn", "grok.app:app", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "120"]
