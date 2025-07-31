@@ -37,8 +37,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application
 COPY grok /app/grok
 
+# Create a start script
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo 'echo "PORT is set to $PORT"' >> /start.sh && \
+    echo 'exec gunicorn grok.app:app --bind 0.0.0.0:${PORT:-8080} --workers 1 --timeout 120' >> /start.sh && \
+    chmod +x /start.sh
+
 # Expose the default port
 EXPOSE 8080
 
-# Start the app using gunicorn with resolved PORT
-CMD ["/bin/sh", "-c", "gunicorn grok.app:app --bind 0.0.0.0:${PORT:-8080} --workers 1 --timeout 120"]
+# Use the start script
+CMD ["/start.sh"]
