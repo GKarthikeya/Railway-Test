@@ -13,6 +13,14 @@ app = Flask(__name__)
 COLLEGE_LOGIN_URL = "https://samvidha.iare.ac.in/"
 ATTENDANCE_URL = "https://samvidha.iare.ac.in/home?action=course_content"
 
+# List of expected courses (add all your courses here)
+EXPECTED_COURSES = {
+    "A123": "Mathematics",
+    "B456": "Physics",
+    "C789": "Chemistry",
+    "D101": "Computer Science"
+}
+
 def calculate_attendance_percentage(rows):
     result = {"subjects": {}, "overall": {"present": 0, "absent": 0, "percentage": 0.0, "success": False}}
 
@@ -25,7 +33,8 @@ def calculate_attendance_percentage(rows):
         if not text or text.startswith("S.NO") or "TOPICS COVERED" in text:
             continue
 
-        course_match = re.match(r"^(A[A-Z]+\d+)\s*[-:\s]+\s*(.+)$", text)
+        # Updated regex to capture more course formats
+        course_match = re.match(r"^([A-Z0-9]+)\s*[-:\s]+\s*(.+)$", text)
         if course_match:
             current_course = course_match.group(1)
             course_name = course_match.group(2).strip()
@@ -42,6 +51,12 @@ def calculate_attendance_percentage(rows):
             total_present += present_count
             total_absent += absent_count
 
+    # Fill missing courses
+    for code, name in EXPECTED_COURSES.items():
+        if code not in result["subjects"]:
+            result["subjects"][code] = {"name": name, "present": 0, "absent": 0, "percentage": 0.0}
+
+    # Calculate percentages
     for sub in result["subjects"].values():
         total = sub["present"] + sub["absent"]
         if total > 0:
@@ -60,7 +75,7 @@ def calculate_attendance_percentage(rows):
 
 def get_attendance_data(username, password):
     options = Options()
-    options.add_argument("--headless")  # No GUI
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
@@ -80,11 +95,16 @@ def get_attendance_data(username, password):
         driver.find_element(By.ID, "but_submit").click()
         time.sleep(3)
 
-        driver.get(ATTENDANCE_URL)
-        time.sleep(3)
+        if driver.current_url != COLLEGE_LOGIN_URL:
+            driver.get(ATTENDANCE_URL)
+            time.sleep(3)
+            rows = driver.find_elements(By.TAG_NAME, "tr")
+            return calculate_attendance_percentage(rows)
+        else:
+            return {"error": "Invalid username or password."}
 
-        rows = driver.find_elements(By.TAG_NAME, "tr")
-        return calculate_attendance_percentage(rows)
+    except Exception as e:
+        return {"error": "Error occurred while fetching attendance."}
     finally:
         driver.quit()
 
@@ -98,8 +118,11 @@ def show_attendance():
     password = request.form["password"]
 
     data = get_attendance_data(username, password)
-    subjects = data["subjects"]
 
+    if "error" in data:
+        return render_template("login.html", error=data["error"])
+
+    subjects = data["subjects"]
     table_data = []
     for i, (code, sub) in enumerate(subjects.items(), start=1):
         table_data.append([i, code, sub["name"], sub["present"], sub["absent"], f"{sub['percentage']}%"])
